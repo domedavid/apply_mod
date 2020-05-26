@@ -1,2 +1,2 @@
 # apply_mod
-moodle apply form
+Upgraded apply form plugin for moodle.

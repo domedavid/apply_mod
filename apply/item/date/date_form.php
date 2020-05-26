@@ -16,9 +16,9 @@
 
 require_once($CFG->dirroot.'/mod/apply/item/apply_item_form_class.php');
 
-class apply_textfield_form extends apply_item_form
+class apply_date_form extends apply_item_form
 {
-    protected $type = "textfield";
+    protected $type = "datefield";
 
     public function definition()
     {
@@ -29,18 +29,14 @@ class apply_textfield_form extends apply_item_form
         $positionlist = $this->_customdata['positionlist'];
         $position = $this->_customdata['position'];
 
-
-
-        $specarray = array('', 'name' => "Név", 'email' => "E-mail", 'phone' => "Telefon");
-
         $mform =& $this->_form;
 
         $mform->addElement('header', 'general', get_string($this->type, 'apply'));
         $mform->addElement('advcheckbox', 'required', get_string('required', 'apply'), '' , null , array(0, 1));
         $mform->setType('required', PARAM_INT);
 
-        $mform->addElement('select', 'special', get_string('special_textfield', 'apply').'&nbsp;', $specarray);
-
+        $mform->addElement('advcheckbox', 'interv', get_string('interv', 'apply'), '' , null , array(0, 1));
+        $mform->setType('interv', PARAM_INT);
 
         $mform->addElement('text', 'name',  get_string('item_name',  'apply'), array('size'=>APPLY_ITEM_NAME_TEXTBOX_SIZE, 'maxlength'=>255));
         $mform->addElement('text', 'label', get_string('item_label', 'apply'), array('size'=>APPLY_ITEM_LABEL_TEXTBOX_SIZE,'maxlength'=>255));
@@ -76,8 +72,8 @@ class apply_textfield_form extends apply_item_form
             return false;
         }
 
-        $item->presentation = $item->itemsize.APPLY_TEXTFIELD_SEP.$item->itemmaxlength.
-                                              APPLY_TEXTFIELD_SEP.$item->outside_style.APPLY_TEXTFIELD_SEP.$item->item_style;
+        $item->presentation = $item->itemsize.APPLY_DATEFIELD_SEP.$item->itemmaxlength.
+                                              APPLY_DATEFIELD_SEP.$item->outside_style.APPLY_DATEFIELD_SEP.$item->item_style;
         return $item;
     }
 }

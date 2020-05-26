@@ -365,7 +365,7 @@ class apply_item_info extends apply_item_base
 
         $align = right_to_left() ? 'right' : 'left';
         if ($highlightrequire AND $item->required AND strval($value) == '') {
-            $highlight = ' missingrequire';
+            $highlight = 'missingrequire';
         }
         else {
             $highlight = '';

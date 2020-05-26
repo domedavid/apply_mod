@@ -40,6 +40,9 @@ class apply_textarea_form extends apply_item_form
         $mform->addHelpButton('label', 'item_label', 'apply');
         $mform->setType('label', PARAM_TEXT);
 
+        $mform->addElement('select', 'minlength',  get_string('textarea_minlength',  'apply').'&nbsp;', array('0' => '', '50' => 50, '100' => 100, '150' => 150, '200' => 200, '250' => 250, '300' => 300, '350' =>350, '400' => 400));
+        $mform->setType('minlength', PARAM_INT);
+
         $mform->addElement('select', 'itemwidth',  get_string('textarea_width',  'apply').'&nbsp;', array_slice(range(0, 80), 5, 80, true));
         $mform->setType('itemwidth', PARAM_INT);
         $mform->addElement('select', 'itemheight', get_string('textarea_height', 'apply').'&nbsp;', array_slice(range(0, 40), 1, 40, true));

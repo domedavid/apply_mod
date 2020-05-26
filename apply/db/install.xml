@@ -19,7 +19,7 @@
         <FIELD NAME="only_acked_accept" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="name_pattern" NEXT="enable_deletemode"/>
         <FIELD NAME="enable_deletemode" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="only_acked_accept" NEXT="can_discard"/>
         <FIELD NAME="can_discard" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="enable_deletemode" NEXT="date_format"/>
-        <FIELD NAME="date_format" TYPE="char" LENGTH="32" NOTNULL="true" DEFAULT="%m/%d/%y %H:%M" SEQUENCE="false" PREVIOUS="can_discard" NEXT="time_open"/>
+        <FIELD NAME="date_format" TYPE="char" LENGTH="32" NOTNULL="true" DEFAULT="%y/%m/%d %H:%M" SEQUENCE="false" PREVIOUS="can_discard" NEXT="time_open"/>
         <FIELD NAME="time_open" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="date_format" NEXT="time_close"/>
         <FIELD NAME="time_close" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="time_open" NEXT="time_modified"/>
         <FIELD NAME="time_modified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="time_close"/>
@@ -71,10 +71,14 @@
         <FIELD NAME="typ" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="presentation" NEXT="hasvalue"/>
         <FIELD NAME="hasvalue" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="typ" NEXT="position"/>
         <FIELD NAME="position" TYPE="int" LENGTH="3" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="hasvalue" NEXT="required"/>
-        <FIELD NAME="required" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="position" NEXT="dependitem"/>
-        <FIELD NAME="dependitem" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="required" NEXT="dependvalue"/>
-        <FIELD NAME="dependvalue" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="dependitem" NEXT="options"/>
-        <FIELD NAME="options" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="dependvalue"/>
+        <FIELD NAME="required" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="position" NEXT="interval"/>
+        <FIELD NAME="interv" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="required" NEXT="startdate"/>
+		<FIELD NAME="startdate" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="interv" NEXT="special"/>
+		<FIELD NAME="special" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="startdate" NEXT="dependitem"/>
+        <FIELD NAME="dependitem" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="special" NEXT="dependvalue"/>
+        <FIELD NAME="dependvalue" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="dependitem" NEXT="minlength"/>
+        <FIELD NAME="minlength" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="dependvalue" NEXT="options"/>
+        <FIELD NAME="options" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="minlength"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id" COMMENT="Primary key for apply_item" NEXT="apply_id"/>

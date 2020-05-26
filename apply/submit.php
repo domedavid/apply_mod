@@ -196,6 +196,7 @@ if ($prev_values) {
         $save_return = 'missing';
         $highlightrequired = true;
         if (isset($last_page)) $go_page = $last_page;
+
         else print_error('missingparameter');
     }
 }

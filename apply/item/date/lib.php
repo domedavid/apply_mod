@@ -17,25 +17,26 @@
 defined('MOODLE_INTERNAL') OR die('not allowed');
 require_once($CFG->dirroot.'/mod/apply/item/apply_item_class.php');
 
-define('APPLY_TEXTAREA_SEP', '|');
+define('APPLY_DATEFIELD_SEP', '|');
 
 
-class apply_item_textarea extends apply_item_base
+class apply_item_date extends apply_item_base
 {
-    protected $type = "textarea";
+    protected $type = "datefield";
     private $commonparams;
     private $item_form;
     private $item;
 
+    public function init()
+    {
 
-    public function init() {
     }
 
 
     public function build_editform($item, $apply, $cm)
     {
         global $DB, $CFG;
-        require_once('textarea_form.php');
+        require_once('date_form.php');
 
         //get the lastposition number of the apply_items
         $position = $item->position;
@@ -53,22 +54,17 @@ class apply_item_textarea extends apply_item_base
         $positionlist = array_slice(range(0, $i_formselect_last), 1, $i_formselect_last, true);
 
         $item->presentation = empty($item->presentation) ? '' : $item->presentation;
-        $presentation = explode(APPLY_TEXTAREA_SEP, $item->presentation);
+        $presentation = explode(APPLY_DATEFIELD_SEP, $item->presentation);
 
         if (isset($presentation[0]) AND $presentation[0] >= 5) {
-            $itemwidth = $presentation[0];
+            $itemsize = $presentation[0];
         }
         else {
-            $itemwidth = 30;  // default
+            $itemsize = 15;
         }
-        if (isset($presentation[1])) {
-            $itemheight = $presentation[1];
-        }
-        else {
-            $itemheight = 5;  // default
-        }
-        $item->itemwidth  = $itemwidth;
-        $item->itemheight = $itemheight;
+        $itemlength = isset($presentation[1]) ? $presentation[1] : 30;
+        $item->itemsize = $itemsize;
+        $item->itemmaxlength = $itemlength;
 
         $outside_style = isset($presentation[2]) ? $presentation[2]: get_string('outside_style_default', 'apply');
         $item_style    = isset($presentation[3]) ? $presentation[3]: get_string('item_style_default',    'apply');
@@ -77,11 +73,11 @@ class apply_item_textarea extends apply_item_base
 
         //all items for dependitem
         $applyitems = apply_get_depend_candidates_for_item($apply, $item);
-        $commonparams = array('cmid'=>$cm->id,
-                             'id'=>isset($item->id) ? $item->id : null,
-                             'typ'=>$item->typ,
-                             'items'=>$applyitems,
-                             'apply_id'=>$apply->id);
+        $commonparams = array('cmid' => $cm->id,
+                             'id' => isset($item->id) ? $item->id : null,
+                             'typ' => $item->typ,
+                             'items' => $applyitems,
+                             'apply_id' => $apply->id);
 
         //build the form
         $customdata = array('item' => $item,
@@ -89,7 +85,7 @@ class apply_item_textarea extends apply_item_base
                             'positionlist' => $positionlist,
                             'position' => $position);
 
-        $this->item_form = new apply_textarea_form('edit_item.php', $customdata);
+        $this->item_form = new apply_date_form('edit_item.php', $customdata);
     }
 
 
@@ -100,7 +96,7 @@ class apply_item_textarea extends apply_item_base
     }
 
 
-    public function is_cancelled()
+    public function is_cancelled() 
     {
         return $this->item_form->is_cancelled();
     }
@@ -115,7 +111,7 @@ class apply_item_textarea extends apply_item_base
     }
 
 
-    public function save_item() 
+    public function save_item()
     {
         global $DB;
 
@@ -130,7 +126,22 @@ class apply_item_textarea extends apply_item_base
 
         $item->hasvalue = $this->get_hasvalue();
         if (!$item->id) {
-            $item->id = $DB->insert_record('apply_item', $item);
+
+            //check whether input is going to be an interval
+            if ($item->interv){
+                if(!$item->name) {
+                    $item->name = "Start date";
+                }
+                $item->id = $DB->insert_record('apply_item', $item);
+                $item->name = "End date";
+                $item->startdate = $item->id;
+                $item->position++;
+                $item->presentation = $item->presentation;
+                $item->id = $DB->insert_record('apply_item', $item);
+            }
+            else {
+                $item->id = $DB->insert_record('apply_item', $item);
+            }
         }
         else {
             $DB->update_record('apply_item', $item);
@@ -139,14 +150,13 @@ class apply_item_textarea extends apply_item_base
         return $DB->get_record('apply_item', array('id'=>$item->id));
     }
 
-
-    //liefert eine Struktur ->name, ->data = array(mit Antworten)
+    //sends a srtucture ->name, ->data = array(with Answer)
     public function get_analysed($item, $groupid = false, $courseid = false)
     {
         global $DB;
 
         $analysed_val = new stdClass();
-        $analysed_val->data = array();
+        $analysed_val->data = null;
         $analysed_val->name = $item->name;
 
         $values = apply_get_group_values($item, $groupid, $courseid);
@@ -166,7 +176,6 @@ class apply_item_textarea extends apply_item_base
         if (!isset($value->value)) {
             return '';
         }
-
         return $value->value;
     }
 
@@ -179,14 +188,9 @@ class apply_item_textarea extends apply_item_base
             echo $itemnr.'&nbsp;('.$item->label.') '.$item->name;
             echo '</th></tr>';
             foreach ($values as $value) {
-                echo '<tr>';
-                echo '<td valign="top" align="left">';
-                echo '-&nbsp;&nbsp;';
-                echo '</td>';
-                echo '<td align="left" valign="top">';
-                echo str_replace("\n", '<br />', $value->value);
-                echo '</td>';
-                echo '</tr>';
+                echo '<tr><td colspan="2" valign="top" align="left">';
+                echo '-&nbsp;&nbsp;'.str_replace("\n", '<br />', $value->value);
+                echo '</td></tr>';
             }
         }
     }
@@ -196,15 +200,14 @@ class apply_item_textarea extends apply_item_base
                              $xls_formats, $item,
                              $groupid, $courseid = false)
     {
+
         $analysed_item = $this->get_analysed($item, $groupid, $courseid);
 
         $worksheet->write_string($row_offset, 0, $item->label, $xls_formats->head2);
         $worksheet->write_string($row_offset, 1, $item->name, $xls_formats->head2);
         $data = $analysed_item->data;
         if (is_array($data)) {
-            if (isset($data[0])) {
-                $worksheet->write_string($row_offset, 2, $data[0], $xls_formats->value_bold);
-            }
+            $worksheet->write_string($row_offset, 2, $data[0], $xls_formats->value_bold);
             $row_offset++;
             $sizeofdata = count($data);
             for ($i = 1; $i < $sizeofdata; $i++) {
@@ -231,15 +234,16 @@ class apply_item_textarea extends apply_item_base
         $align = right_to_left() ? 'right' : 'left';
         $str_required_mark = '<span class="apply_required_mark">*</span>';
 
-        $presentation = explode(APPLY_TEXTAREA_SEP, $item->presentation);
+        $presentation = explode(APPLY_DATEFIELD_SEP, $item->presentation);
         //$outside_style = isset($presentation[2]) ? $presentation[2]: get_string('outside_style_default', 'apply');
         //$item_style    = isset($presentation[3]) ? $presentation[3]: get_string('item_style_default',    'apply');
-        $item->outside_style = ''; //$outside_style
-        $item->item_style    = ''; //$item_style;
+        $item->outside_style = '';  //$outside_style;
+        $item->item_style    = '';  //$item_style;
 
         //print the question and label
-        $requiredmark = ($item->required == 1) ? $str_required_mark : '';
-        $output  = '<div class="apply_item_label_'.$align.'">';
+        $requiredmark =  ($item->required == 1) ? $str_required_mark : '';
+        $output  = '';
+        $output .= '<div class="apply_item_label_'.$align.'">';
         $output .= '('.$item->label.') ';
         $output .= format_text($item->name.$requiredmark, true, false, false).' ['.$item->position.']';
         if ($item->dependitem) {
@@ -255,16 +259,16 @@ class apply_item_textarea extends apply_item_base
 
         //print the presentation
         echo '<div class="apply_item_presentation_'.$align.'">';
-        echo '<span class="apply_item_textarea">';
+        echo '<span class="apply_item_date">';
         apply_item_box_start($item);
-        echo '<textarea name="'.$item->typ.'_'.$item->id.'" '.
-                       'cols="'.$presentation[0].'" '.
-                       'rows="'.$presentation[1].'">';
-        echo '</textarea>';
+        echo '<input type="date" '.
+            'style="width:'.$presentation[0].'rem;" '.
+                    'name="'.$item->typ.'_'.$item->id.'" '.
+                    'maxlength="'.$presentation[1].'" '.
+                    'value="" />';
         apply_item_box_end();
         echo '</span>';
         echo '</div>';
-        //
         apply_close_table_item_tag();
     }
 
@@ -281,64 +285,40 @@ class apply_item_textarea extends apply_item_base
     public function print_item_submit($item, $value = '', $highlightrequire = false)
     {
         global $OUTPUT;
+        global $USER;
+
+        $presentation = explode(APPLY_DATEFIELD_SEP, $item->presentation);
+        $outside_style = isset($presentation[2]) ? $presentation[2]: get_string('outside_style_default', 'apply');
+        $item_style    = isset($presentation[3]) ? $presentation[3]: get_string('item_style_default',    'apply');
+        $item->outside_style = '';  //$outside_style;
+        $item->item_style    = '';  //$item_style;
 
         $align = right_to_left() ? 'right' : 'left';
-
-        $presentation = explode(APPLY_TEXTAREA_SEP, $item->presentation);
-        //$outside_style = isset($presentation[2]) ? $presentation[2]: get_string('outside_style_default', 'apply');
-        //$item_style    = isset($presentation[3]) ? $presentation[3]: get_string('item_style_default',    'apply');
-        $item->outside_style = ''; //$outside_style
-        $item->item_style    = ''; //$item_style;
-
-        if ($highlightrequire AND $item->required AND strval($value) == '') $highlight = ' missingrequire';
-        elseif ($highlightrequire AND $item->minlength>0 AND strlen($value)<$item->minlength) $highlight = ' missingrequire';
+        if ($highlightrequire AND strval($value) == '' AND $item->required) $highlight = ' missingrequire';
         else                                                                $highlight = '';
 
         $str_required_mark = '<span class="apply_required_mark">*</span>';
-        $requiredmark = ($item->required == 1) ? $str_required_mark :'';
+        $requiredmark =  ($item->required == 1) ? $str_required_mark : '';
         //print the question and label
         $output  = '';
-        $output .= '<div div style="width:30%; min-width:400px;" class="apply_item_label_'.$align.$highlight.'">';
-        $output .=  format_text($item->name . $requiredmark, true, false, false);
+        $output .= '<div style="width:30%; min-width:400px;" class="apply_item_label_'.$align.$highlight.'">';
+        $output .= format_text($item->name.$requiredmark, true, false, false);
         $output .= '</div>';
 
         apply_open_table_item_tag($output);
 
         //print the presentation
-        echo '<div div style="width:30%; min-width:400px;" class="apply_item_presentation_'.$align.$highlight.'">';
-        echo '<span class="apply_item_textarea">';
+        echo '<div style="width:30%; min-width:400px;" class="apply_item_presentation_'.$align.$highlight.'">';
+        echo '<span class="apply_item_date">';
         apply_item_box_start($item);
 
-        echo '<textarea name="'.$item->typ.'_'.$item->id.'" '.
-                        'id="'.$item->typ.'_'.$item->id.'" '.
-                       'cols="'.$presentation[0].'" '.
-                       'rows="'.$presentation[1].'">';
-        echo $value;
-        echo '</textarea>';
+        echo '<input type="date" '.
+            'style="width:'.$presentation[0].'rem;" '.
+                    'name="'.$item->typ.'_'.$item->id.'" '.
+                    'maxlength="'.$presentation[1].'" '.
+                    'value="'.$value.'" />';
         apply_item_box_end();
         echo '</span>';
-        echo 'Characters required: <span id="count'.$item->id.'">'.$item->minlength.'</span>';
-
-        // textarea character counter display js
-        echo '<script type="text/JavaScript">
-
-           
-            document.getElementById("textarea_'.$item->id.'").onkeyup = function () {
-            
-            var count = '.$item->minlength.'-this.value.length;
-             
-            if(count >0)
-               { 
-                   document.getElementById("count'.$item->id.'").innerHTML = count;
-               }
-            else
-               {
-                   document.getElementById("count'.$item->id.'").innerHTML = "0";
-               }
-            };
-            
-            
-            </script>';
         echo '</div>';
 
         apply_close_table_item_tag();
@@ -354,10 +334,10 @@ class apply_item_textarea extends apply_item_base
      * @return void
      */
     public function print_item_show_value($item, $value = '')
-    {
+	{
         global $OUTPUT;
 
-        $presentation = explode(APPLY_TEXTAREA_SEP, $item->presentation);
+        $presentation = explode(APPLY_DATEFIELD_SEP, $item->presentation);
         $outside_style = isset($presentation[2]) ? $presentation[2]: get_string('outside_style_default', 'apply');
         $item_style    = isset($presentation[3]) ? $presentation[3]: get_string('item_style_default',    'apply');
         $item->outside_style = $outside_style;
@@ -365,7 +345,7 @@ class apply_item_textarea extends apply_item_base
 
         $align = right_to_left() ? 'right' : 'left';
         $str_required_mark = '<span class="apply_required_mark">*</span>';
-        $requiredmark = ($item->required == 1) ? $str_required_mark : '';
+        $requiredmark =  ($item->required == 1) ? $str_required_mark : '';
         //print the question and label
         $output  = '';
         $output .= '<div class="apply_item_label_'.$align.'">';
@@ -374,10 +354,9 @@ class apply_item_textarea extends apply_item_base
 
         apply_open_table_item_tag($output);
 
-        //print the presentation
         echo $OUTPUT->box_start('generalbox boxalign'.$align);
         apply_item_box_start($item);
-        echo $value ? str_replace("\n", '<br />', $value) : '&nbsp;';
+        echo $value ? $value : '&nbsp;';
         apply_item_box_end();
         echo $OUTPUT->box_end();
 
@@ -419,8 +398,8 @@ class apply_item_textarea extends apply_item_base
 
     public function get_presentation($data)
     {
-        return $data->itemwidth.APPLY_TEXTAREA_SEP.$data->itemheight.
-                                APPLY_TEXTAREA_SEP.$data->outside_style.APPLY_TEXTAREA_SEP.$data->item_style;
+        return $data->itemsize.APPLY_DATEFIELD_SEP.$data->itemmaxlength.
+                               APPLY_DATEFIELD_SEP.$data->outside_style.APPLY_DATEFIELD_SEP.$data->item_style;
     }
 
 

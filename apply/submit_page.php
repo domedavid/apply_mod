@@ -5,6 +5,8 @@
 //
 
 //print the items
+global $USER;
+
 echo $OUTPUT->box_start('generalbox boxaligncenter boxwidthwide');
 {
     echo '<form action="submit.php" method="post" onsubmit=" ">';
@@ -28,7 +30,8 @@ echo $OUTPUT->box_start('generalbox boxaligncenter boxwidthwide');
         $last_break_position = 0;
 
         foreach ($items as $item) {
-            //
+
+
             if (!isset($start_item)) {
                 if ($item->typ=='pagebreak') continue;
                 $start_item = $item;
@@ -43,6 +46,8 @@ echo $OUTPUT->box_start('generalbox boxaligncenter boxwidthwide');
             }
 
             // restore value
+
+
             $value = '';
             $frmvaluename = $item->typ.'_'.$item->id;
             if (isset($save_return)) {

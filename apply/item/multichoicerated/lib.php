@@ -420,14 +420,14 @@ class apply_item_multichoicerated extends apply_item_base
         $requiredmark =  ($item->required == 1) ? $str_required_mark : '';
         //print the question and label
         $output  = '';
-        $output .= '<div class="apply_item_label_'.$align.$highlight.'">';
+        $output .= '<div style="width:30%; min-width:400px;" class="apply_item_label_'.$align.$highlight.'">';
         $output .= format_text($item->name.$requiredmark, true, false, false);
         $output .= '</div>';
 
         apply_open_table_item_tag($output);
 
         //print the presentation
-        echo '<div class="apply_item_presentation_'.$align.$highlight.'">';
+        echo '<div style="width:30%; min-width:400px;" class="apply_item_presentation_'.$align.$highlight.'">';
         apply_item_box_start($item);
         switch($info->subtype) {
             case 'r':

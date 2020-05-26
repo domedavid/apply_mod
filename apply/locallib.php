@@ -528,13 +528,17 @@ function apply_check_values($first_item, $last_item)
     $items  = $DB->get_records_select('apply_item', $select, $params);
     if (!$items) return true;
 
+    $previtem = null;
+    $previtem_value = null;
+
     foreach ($items as $item) {
         $itemobj = apply_get_item_class($item->typ);
         $formvalname = $item->typ . '_' . $item->id;
+        $dateparam = FALSE;
 
         if ($itemobj->value_is_array()) {
             $value = optional_param_array($formvalname, null, PARAM_RAW);
-        } 
+        }
         else {
             $value = optional_param($formvalname, null, PARAM_RAW);
         }
@@ -543,12 +547,48 @@ function apply_check_values($first_item, $last_item)
         if (is_null($value) and $item->required==1) {
             return false;
         }
+        // textarea length check
+        if ($item->typ == "textarea" and $item->minlength>0)
+        {
+            if (strlen($value)<$item->minlength)
+            {
+                return false;
+            }
+        }
+        //checking textfield special values and date intervals
+        if ($value != NULL) {
+            if ($item->special == 'phone' and !preg_match('/^[0-9]{2}-[0-9]{3}-[0-9]{4}$/', $value)) {
+                return false;
+            }
+            if ($item->special == "email" and !filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                return false;
+            }
+
+            if ($item->typ == "date" and DateTime::createFromFormat('Y-m-d', $value) == FALSE) {
+                return false;
+            }
+
+            if ($item->typ == "date" and $item->interv and DateTime::createFromFormat('Y-m-d', $value) !== FALSE) {
+                if ($previtem and $item->startdate == $previtem->id) {
+                    if (strtotime($value) < strtotime($previtem_value)) {
+                        return false;
+                    }
+                }
+                $previtem_value = $value;
+                $previtem = $item;
+            }
+
+        }
+
         if (!$itemobj->check_value($value, $item)) {
             return false;
         }
-    }
 
+
+
+    }
     return true;
+
 }
 
 
@@ -656,7 +696,7 @@ function apply_update_draft_values($submit)
 
         // for Title of Draft (version=0)
         if ($title=='') {
-            if ($item->label==APPLY_SUBMIT_TITLE_TAG and $item->typ=='textfield') {
+            if ($item->label==APPLY_SUBMIT_TITLE_TAG and $item->typ=='textfield' or $item->typ=='date') {
                 $title = $newvalue->value;
             }
         }
@@ -1013,7 +1053,7 @@ function apply_send_email($cm, $apply, $course, $user_id)
                     $posthtml = apply_send_email_html($info, $course, $cm);
                 }
 
-                $eventdata = new stdClass();
+                $eventdata = new core\message\message;
                 $eventdata->name              = 'submission';
                 $eventdata->component         = 'mod_apply';
                 $eventdata->userfrom          = $user;
@@ -1113,7 +1153,7 @@ function apply_send_email_user($cm, $apply, $course, $submit, $accept, $execd, $
         $posthtml = apply_send_email_html_user($info, $course, $cm, $accept, $execd);
     }
 
-    $eventdata = new stdClass();
+    $eventdata = new core\message\message;
     $eventdata->name              = 'processed';
     $eventdata->component         = 'mod_apply';
     $eventdata->userfrom          = $fuser;

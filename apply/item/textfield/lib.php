@@ -29,6 +29,7 @@ class apply_item_textfield extends apply_item_base
 
     public function init()
     {
+
     }
 
 
@@ -271,6 +272,11 @@ class apply_item_textfield extends apply_item_base
     public function print_item_submit($item, $value = '', $highlightrequire = false)
     {
         global $OUTPUT;
+        global $USER;
+        global $DB;
+        $ph = "";
+        $inputtype = "";
+
 
         $presentation = explode(APPLY_TEXTFIELD_SEP, $item->presentation);
         $outside_style = isset($presentation[2]) ? $presentation[2]: get_string('outside_style_default', 'apply');
@@ -280,27 +286,59 @@ class apply_item_textfield extends apply_item_base
 
         $align = right_to_left() ? 'right' : 'left';
         if ($highlightrequire AND $item->required AND strval($value) == '') $highlight = ' missingrequire';
+        //elseif ($highlightrequire AND $item->special=="date") $highlight = ' missingrequire';
+        //elseif ($highlightrequire AND $item->special=="email" AND !filter_var($value, FILTER_VALIDATE_EMAIL)) $highlight = ' missingrequire';
+        //elseif ($highlightrequire AND $item->special=="phone" AND !preg_match('/^[0-9]{2}-[0-9]{3}-[0-9]{4}$/', $value)) $highlight = ' missingrequire';
+
+
+
         else                                                                $highlight = '';
 
         $str_required_mark = '<span class="apply_required_mark">*</span>';
         $requiredmark =  ($item->required == 1) ? $str_required_mark : '';
         //print the question and label
         $output  = '';
-        $output .= '<div class="apply_item_label_'.$align.$highlight.'">';
+        $output .= '<div style="width:30%; min-width:400px;" class="apply_item_label_'.$align.$highlight.'">';
         $output .= format_text($item->name.$requiredmark, true, false, false);
         $output .= '</div>';
 
         apply_open_table_item_tag($output);
 
         //print the presentation
-        echo '<div class="apply_item_presentation_'.$align.$highlight.'">';
+        echo '<div style="width:30%; min-width:400px;" class="apply_item_presentation_'.$align.$highlight.'">';
         echo '<span class="apply_item_textfield">';
         apply_item_box_start($item);
-        echo '<input type="text" '.
+
+        if ($item->special == "email")
+        {
+            $inputtype="email";
+            $value = $USER->email;
+            $ph = "minta@domain.com";
+        }
+        elseif ($item->special == "name"){
+            $value = fullname($USER);
+        }
+        elseif ($item->special == "phone"){
+            $inputtype="tel";
+            $ph = "20-123-4567";
+            $pattern = 'pattern="[0-9]{2}-[0-9]{3}-[0-9]{4}"';
+        }
+        else {
+            $value = $value;
+        }
+
+        echo '<input type="'.$inputtype.'" '.
                     'name="'.$item->typ.'_'.$item->id.'" '.
                     'size="'.$presentation[0].'" '.
                     'maxlength="'.$presentation[1].'" '.
-                    'value="'.$value.'" />';
+                    'placeholder="'.$ph.'" '.
+                    'value="'.$value.'" ';
+                    if($inputtype == "tel") {
+                      echo  $pattern;
+                    }
+
+                    echo '/>';
+
         apply_item_box_end();
         echo '</span>';
         echo '</div>';

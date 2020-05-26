@@ -254,16 +254,6 @@ if ($do_show=='view_one_entry' and $submit_id) {
 }
 
 
-/////////////////////////////////////////
-if (empty($plugin)) $plugin = new stdClass();
-include('version.php');
-//
-echo '<div align="center">';
-echo '<a href="'.get_string('wiki_url', 'apply').'" target="_blank"><i>mod_apply '.$plugin->release.'</i></a>';
-echo '<br />';
-echo '</div>';
-
-
 ///////////////////////////////////////////////////////////////////////////
 /// Finish the page
 echo $OUTPUT->footer();

@@ -345,7 +345,7 @@ function jbxl_db_exist_table($table, $lower_case=false)
 //////////////////////////////////////////////////////////////////////////
 // download
 //
-// $datas: 2次元のデータ配列
+// $datas: 2 dimension table
 //
 
 $jbxl_moodle_excel_ver = 'Excel5';
@@ -442,7 +442,7 @@ function  jbxl_download_data($format, $datas, $filename='')
 //////////////////////////////////////////////////////////////////////////
 // save CSV file
 //
-// $datas: 2次元のデータ配列
+// $datas: 2 dimension table
 //
 function  jbxl_save_csv_file($datas, $filename, $tocode='UTF-8')
 {

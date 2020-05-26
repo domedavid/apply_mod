@@ -307,6 +307,7 @@ $string['vertical'] = '垂直';
 $string['view_entries'] = '申請書の表示';
 $string['wiki_url'] = 'http://www.nsl.tuis.ac.jp/xoops/modules/xpwiki/?mod_apply';
 $string['yes_button'] = ' はい ';
+$string['special_textfield'] = 'Speciális típus';
 
 $string['submit_num'] = '申請数';
 

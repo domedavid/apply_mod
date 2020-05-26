@@ -1,4 +1,20 @@
 ///////////////////////////////////////////////////////////////////////////////
+
+//	  A továbbfejlesztett plugin célja a hallgatók Moodle rendszerben történő szakmai gyakorlatos regisztrációjának minél egyszerűbb     //    megvalósítása.
+	
+//    A plugin alapját az azóta már a Moodle-be beépített „Feedback module” alkotja, amit Andreas Grabs készített.   
+//             https://docs.moodle.org/38/en/Feedback_activity
+    
+//    Ezt fejlesztette tovább Fumikazu Iseki, aki a funkciók bővítésével Application Form  néven adta ki, mint telepíthető plugin. 
+//             http://www.nsl.tuis.ac.jp/xoops/modules/xpwiki/?mod_apply%20%28E%29
+    
+//    Ezt a változatot alapul véve, a követelményspecifikációk figyelembe vételével került kifejlesztésre a jelenlegi verzió.
+
+///////////////////////////////////////////////////////////////////////////////
+
+//    Eredeti README:
+
+///////////////////////////////////////////////////////////////////////////////
 // Application Form Module v1.0
 //                                        by Fumi.Iseki  2013/05/07
 //                                        mailto:iseki@solar-system.tuis.ac.jp

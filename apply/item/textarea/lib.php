@@ -377,7 +377,7 @@ class apply_item_textarea extends apply_item_base
         //print the presentation
         echo $OUTPUT->box_start('generalbox boxalign'.$align);
         apply_item_box_start($item);
-        echo $value ? str_replace("\n", '<br />', $value) : '&nbsp;';
+        echo $value ? wordwrap(str_replace("\n", '<br />', $value), 100, "<br>\n") : '&nbsp;';
         apply_item_box_end();
         echo $OUTPUT->box_end();
 
